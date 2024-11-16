@@ -275,28 +275,28 @@ jobs:
         run: |
           aws deploy wait deployment-successful --deployment-id ${{ steps.deploy.outputs.deployment_id }}                
 
-load-test:
-  runs-on: ubuntu-latest
-  environment: runner
-  services:
-    mysql:
-      image: mysql:8.0
-      env:
-        # root 계정 비밀번호
-        MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
-        # 사용자 계정
-        MYSQL_USER: ${{ secrets.MYSQL_USER }}
-        # 사용자 계정 비밀번호
-        MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-        # 사용자 계정 데이터베이스
-        MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
-      ports:
-        - 3306:3306
-      options: >-
-        --health-cmd="mysqladmin ping"
-        --health-interval=10s
-        --health-timeout=5s
-        --health-retries=3
+  load-test:
+    runs-on: ubuntu-latest
+    environment: runner
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          # root 계정 비밀번호
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          # 사용자 계정
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          # 사용자 계정 비밀번호
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          # 사용자 계정 데이터베이스
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
     steps:
     - name: 배포용 소스 다운로드
       uses: actions/checkout@v4
@@ -308,33 +308,33 @@ load-test:
         distribution: 'temurin'
 
     - name: change application.yml
-    run: |
-      cat > src/main/resources/application.yml << EOF
-      spring:
-        datasource:
-          url: ${{ secrets.DATABASE_URL }} # 예dbc:mysql://localhost:3306/istory
-          username: ${{ secrets.MYSQL_USER }}
-          password: ${{ secrets.MYSQL_PASSWORD }}
-          driver-class-name: com.mysql.cj.jdbc.Driver
-        jpa:
-          database-platform: org.hibernate.dialect.MySQL8Dialect
-          hibernate:
-            ddl-auto: update
-          show-sql: true
-        application:
-          name: USER-SERVICE
-        jwt:
-          issuer: user@gmail.com
-          secret_key: study-springboot
-      management:
-        endpoints:
-          web:
-            exposure:
-              include: health,info
-        endpoint:
-          health:
-            show-details: always
-      EOF
+      run: |
+        cat > src/main/resources/application.yml << EOF
+        spring:
+          datasource:
+            url: ${{ secrets.DATABASE_URL }} # 예dbc:mysql://localhost:3306/istory
+            username: ${{ secrets.MYSQL_USER }}
+            password: ${{ secrets.MYSQL_PASSWORD }}
+            driver-class-name: com.mysql.cj.jdbc.Driver
+          jpa:
+            database-platform: org.hibernate.dialect.MySQL8Dialect
+            hibernate:
+              ddl-auto: update
+            show-sql: true
+          application:
+            name: USER-SERVICE
+          jwt:
+            issuer: user@gmail.com
+            secret_key: study-springboot
+        management:
+          endpoints:
+            web:
+              exposure:
+                include: health,info
+          endpoint:
+            health:
+              show-details: always
+        EOF
     - name: Build 
       run: |
         ./gradlew bootJar
@@ -371,4 +371,4 @@ load-test:
         echo "| 실패율 | $(grep "http_req_failed" k6_results.txt | awk '{print $3}') |" >> $GITHUB_STEP_SUMMARY
       env:
         K6_VIRTUAL_USERS: 10
-        K6_DURATION: "30s"                  
+        K6_DURATION: "30s"               
